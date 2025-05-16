@@ -1,6 +1,6 @@
 # GitHub Actions cache by puzl.cloud
 
-This action allows local caching of dependencies and build outputs to improve workflow execution time when using [GitHub Actions runners](https://puzl.cloud/products/run-my-job) on puzl.cloud.
+This action allows local caching of dependencies and build outputs to improve workflow execution time when using [GitHub Actions runners](https://puzl.cloud/products/run-my-job) on [puzl.cloud](https://puzl.cloud).
 
 [![Tests](https://github.com/puzl-cloud/github-actions-cache/actions/workflows/workflow.yml/badge.svg)](https://github.com/puzl-cloud/github-actions-cache/actions/workflows/workflow.yml)
 

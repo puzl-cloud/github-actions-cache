@@ -114,4 +114,4 @@ steps:
     run: /install.sh
 ```
 
-> Note: The `id` defined in `actions/cache` must match the `id` in the `if` statement (i.e. `steps.[ID].outputs.cache-hit`)
+> Note: The `id` defined in `puzl-cloud/github-actions-cache` must match the `id` in the `if` statement (i.e. `steps.[ID].outputs.cache-hit`)

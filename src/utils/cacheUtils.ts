@@ -77,7 +77,7 @@ export async function restoreCacheArchive(archivePath: string): Promise<void> {
 
     // Restoring the archive to the root project directory
     // Tar will automatically extract everything to the same paths it was created from
-    const cmd = `${TAR_COMMAND} -xf ${archivePath} -C ${parentDir}`;
+    const cmd = `bash -c "${TAR_COMMAND} -xf ${archivePath} -C ${parentDir}"`;
     const extractPromise = execAsync(cmd);
 
     try {

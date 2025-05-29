@@ -25484,7 +25484,7 @@ function runTarCommand(srcPath, destPath, childProcesses) {
         var _a;
         const baseDir = (0, path_1.dirname)(srcPath);
         const folderName = (0, path_1.basename)(srcPath);
-        const cmd = `${constants_1.TAR_COMMAND} -cf ${destPath} -C ${baseDir} ${folderName}`;
+        const cmd = `bash -c "${constants_1.TAR_COMMAND} -cf ${destPath} -C ${baseDir} ${folderName}"`;
         core.info(`Save cache for ${srcPath}: ${Buffer.from(srcPath).toString("base64")}`);
         const child = (0, child_process_1.exec)(cmd, { maxBuffer: 10 * 1024 * 1024 });
         let stderr = "";
@@ -25616,7 +25616,7 @@ function restoreCacheArchive(archivePath) {
         yield fs_1.default.promises.mkdir(parentDir, { recursive: true });
         // Restoring the archive to the root project directory
         // Tar will automatically extract everything to the same paths it was created from
-        const cmd = `${constants_1.TAR_COMMAND} -xf ${archivePath} -C ${parentDir}`;
+        const cmd = `bash -c "${constants_1.TAR_COMMAND} -xf ${archivePath} -C ${parentDir}"`;
         const extractPromise = (0, actionUtils_1.execAsync)(cmd);
         try {
             yield (0, common_1.streamOutputUntilResolved)(extractPromise);

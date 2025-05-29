@@ -270,7 +270,7 @@ describe("runTarCommand (integration)", () => {
         const extractDir = path.join(tempDir, "extract");
         await fs.promises.mkdir(extractDir);
         const cmd = `bash -c "${TAR_COMMAND} -xf '${destTar}' -C '${extractDir}'"`;
-        execSync(cmd, { stdio: 'inherit' });
+        execSync(cmd, { stdio: "inherit" });
 
         const extractedFile = path.join(extractDir, "src", "file.txt");
         const content = await fs.promises.readFile(extractedFile, "utf8");

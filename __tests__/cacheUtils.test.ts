@@ -182,7 +182,7 @@ describe("restoreCacheArchive", () => {
 
         await cacheUtils.restoreCacheArchive(archivePath);
         expect(execAsyncMock).toHaveBeenCalledWith(
-            `bash -c "${TAR_COMMAND} -xf '${archivePath}' -C '/'"`
+            `bash -c "${TAR_COMMAND} -xf ${archivePath} -C /"`
         );
         expect(core.info).toHaveBeenCalledWith(
             expect.stringContaining(`Restoring cache from ${archivePath}`)

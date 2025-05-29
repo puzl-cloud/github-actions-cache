@@ -106,7 +106,7 @@ export async function runTarCommand(
     const baseDir = dirname(srcPath);
     const folderName = basename(srcPath);
 
-    const cmd = `bash -c "${TAR_COMMAND} -cf '${destPath}' -C '${baseDir}' '${folderName}'"`;
+    const cmd = `bash -c "${TAR_COMMAND} -cf ${destPath} -C ${baseDir} ${folderName}"`;
 
     core.info(
         `Save cache for ${srcPath}: ${Buffer.from(srcPath).toString("base64")}`

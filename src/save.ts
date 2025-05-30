@@ -32,9 +32,10 @@ async function run(): Promise<void> {
             return;
         }
 
-        const cachePaths = utils.getInputAsArray(Inputs.Path, {
+        const rawPath = utils.getInputAsArray(Inputs.Path, {
             required: true
         });
+        const cachePaths = utils.parseCachePaths(rawPath);
 
         const cacheId = await cache.saveCache(cachePaths, primaryKey);
 

@@ -1,4 +1,5 @@
 import * as core from "@actions/core";
+import path from "path";
 
 import * as cache from "../src/cache";
 import run from "../src/save";
@@ -63,12 +64,18 @@ describe("save", () => {
         );
         jest.spyOn(actionUtils, "isExactKeyMatch").mockReturnValue(false);
         jest.spyOn(cache, "saveCache").mockResolvedValue(123);
-        jest.spyOn(actionUtils, "getInputAsArray").mockReturnValue(MOCK_PATHS);
+
+        const expectedPaths = MOCK_PATHS.map(p =>
+            path.resolve(process.cwd(), p)
+        );
+        jest.spyOn(actionUtils, "getInputAsArray").mockReturnValue(
+            expectedPaths
+        );
 
         await run();
 
         expect(cache.saveCache).toHaveBeenCalledWith(
-            MOCK_PATHS,
+            expectedPaths,
             MOCK_PRIMARY_KEY
         );
         expect(infoMock).toHaveBeenCalled();

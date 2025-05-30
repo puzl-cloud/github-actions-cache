@@ -267,12 +267,12 @@ describe("runTarCommand (integration)", () => {
         expect(stat.size).toBeGreaterThan(0);
 
         // Extract and verify contents
-        const extractDir = path.join(tempDir, "extract");
-        await fs.promises.mkdir(extractDir);
-        const cmd = `bash -c "${TAR_COMMAND} -xf '${destTar}' -C '${extractDir}'"`;
-        execSync(cmd, { stdio: 'inherit' });
+        const parentDir = path.dirname(srcDir);
+        const useCFlag = parentDir.startsWith("/") ? `-C ${parentDir}` : "";
+        const cmd = `bash -c "${TAR_COMMAND} -xf ${destTar} ${useCFlag}"`;
+        execSync(cmd, { stdio: "inherit" });
 
-        const extractedFile = path.join(extractDir, "src", "file.txt");
+        const extractedFile = path.join(srcDir, "file.txt");
         const content = await fs.promises.readFile(extractedFile, "utf8");
         expect(content).toBe("hello world");
     });

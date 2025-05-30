@@ -25396,10 +25396,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.execAsync = exports.runTarCommand = exports.getInputAsBool = exports.getInputAsInt = exports.getInputAsArray = exports.logWarning = exports.getCacheState = exports.setOutputAndState = exports.setCacheHitOutput = exports.setCacheState = exports.isExactKeyMatch = exports.isGhes = exports.getPrimaryKey = exports.isCacheFunctionEnabled = void 0;
+exports.execAsync = exports.runTarCommand = exports.getInputAsBool = exports.getInputAsInt = exports.parseCachePaths = exports.getInputAsArray = exports.logWarning = exports.getCacheState = exports.setOutputAndState = exports.setCacheHitOutput = exports.setCacheState = exports.isExactKeyMatch = exports.isGhes = exports.getPrimaryKey = exports.isCacheFunctionEnabled = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const child_process_1 = __nccwpck_require__(2081);
-const path_1 = __nccwpck_require__(1017);
+const path = __importStar(__nccwpck_require__(1017));
 const util_1 = __nccwpck_require__(3837);
 const constants_1 = __nccwpck_require__(9042);
 function isCacheFunctionEnabled() {
@@ -25466,6 +25466,23 @@ function getInputAsArray(name, options) {
         .filter(x => x !== "");
 }
 exports.getInputAsArray = getInputAsArray;
+function parseCachePaths(paths) {
+    if (!paths || paths.length === 0) {
+        return [];
+    }
+    return paths
+        .filter(line => line.length > 0 && !line.startsWith("#"))
+        .map(line => {
+        if (line.startsWith("~/")) {
+            return path.join(process.env.HOME || "/home/runner", line.substring(2));
+        }
+        if (!path.isAbsolute(line)) {
+            return path.resolve(line);
+        }
+        return line;
+    });
+}
+exports.parseCachePaths = parseCachePaths;
 function getInputAsInt(name, options) {
     const value = parseInt(core.getInput(name, options));
     if (isNaN(value) || value < 0) {
@@ -25482,9 +25499,7 @@ exports.getInputAsBool = getInputAsBool;
 function runTarCommand(srcPath, destPath, childProcesses) {
     return __awaiter(this, void 0, void 0, function* () {
         var _a;
-        const baseDir = (0, path_1.dirname)(srcPath);
-        const folderName = (0, path_1.basename)(srcPath);
-        const cmd = `bash -c "${constants_1.TAR_COMMAND} -cf '${destPath}' -C '${baseDir}' '${folderName}'"`;
+        const cmd = `bash -c "${constants_1.TAR_COMMAND} -cf ${destPath} ${srcPath}"`;
         core.info(`Save cache for ${srcPath}: ${Buffer.from(srcPath).toString("base64")}`);
         const child = (0, child_process_1.exec)(cmd, { maxBuffer: 10 * 1024 * 1024 });
         let stderr = "";
@@ -25558,7 +25573,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.tryRestoreFromKey = exports.restoreCacheArchive = exports.collectCacheFile = exports.locateCacheFiles = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const fs_1 = __importDefault(__nccwpck_require__(7147));
-const path_1 = __importStar(__nccwpck_require__(1017));
+const path_1 = __importDefault(__nccwpck_require__(1017));
 const pretty_bytes_1 = __importDefault(__nccwpck_require__(5168));
 const constants_1 = __nccwpck_require__(9042);
 const actionUtils_1 = __nccwpck_require__(6850);
@@ -25596,27 +25611,14 @@ function collectCacheFile(key, cacheDirs) {
 exports.collectCacheFile = collectCacheFile;
 function restoreCacheArchive(archivePath) {
     return __awaiter(this, void 0, void 0, function* () {
-        const encodedBaseDir = path_1.default.basename(archivePath);
-        if (!encodedBaseDir) {
-            throw new Error("Failed to determine `encodedBaseDir`");
-        }
         const cacheStats = yield fs_1.default.promises.stat(archivePath);
         core.info([
             `Restoring cache from ${archivePath}`,
             `Created: ${cacheStats.mtime}`,
             `Size: ${(0, pretty_bytes_1.default)(cacheStats.size || 0)}`
         ].join("\n"));
-        if (!encodedBaseDir)
-            throw new Error("Failed to determine `encodedBaseDir`");
-        const originalBaseDir = Buffer.from(encodedBaseDir, "base64").toString("utf-8");
-        if (!originalBaseDir) {
-            throw new Error("Failed to decode archive path from base64");
-        }
-        const parentDir = (0, path_1.dirname)(originalBaseDir);
-        yield fs_1.default.promises.mkdir(parentDir, { recursive: true });
-        // Restoring the archive to the root project directory
-        // Tar will automatically extract everything to the same paths it was created from
-        const cmd = `bash -c "${constants_1.TAR_COMMAND} -xf '${archivePath}' -C '${parentDir}'"`;
+        // Restoring the archive
+        const cmd = `bash -c "${constants_1.TAR_COMMAND} -xf ${archivePath} -C /"`;
         const extractPromise = (0, actionUtils_1.execAsync)(cmd);
         try {
             yield (0, common_1.streamOutputUntilResolved)(extractPromise);

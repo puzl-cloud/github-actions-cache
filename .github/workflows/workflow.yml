@@ -43,12 +43,16 @@ jobs:
     - name: Generate files outside working directory
       shell: bash
       run: bash __tests__/create-cache-files.sh ${{ runner.os }} ~/test-cache
+    - name: Generate files outside working directory
+      shell: bash
+      run: bash __tests__/create-cache-files.sh ${{ runner.os }} ./test/dir/dist
     - name: Save cache
       uses: ./
       with:
         key: test-${{ runner.os }}-${{ github.run_id }}
         path: |
           test-cache
+          ./test/**/dist
           ~/test-cache
     - name: tree /.puzl
       shell: bash
@@ -72,6 +76,9 @@ jobs:
       run: bash __tests__/verify-cache-files.sh ${{ runner.os }} test-cache
     - name: Verify cache files outside working directory
       shell: bash
+      run: bash __tests__/verify-cache-files.sh ${{ runner.os }} ./test/dir/dist
+    - name: Verify cache files outside working directory
+      shell: bash
       run: bash __tests__/verify-cache-files.sh ${{ runner.os }} ~/test-cache
 
   test-cleanup:
@@ -83,3 +90,4 @@ jobs:
     - name: Cleanup old caches
       shell: bash
       run: bash -x cleanup.sh
+

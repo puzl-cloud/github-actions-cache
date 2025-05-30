@@ -1,6 +1,6 @@
 import * as core from "@actions/core";
 import fs from "fs";
-import path, { dirname } from "path";
+import path from "path";
 import prettyBytes from "pretty-bytes";
 
 import { TAR_COMMAND } from "../constants";
@@ -44,12 +44,6 @@ export async function collectCacheFile(
 }
 
 export async function restoreCacheArchive(archivePath: string): Promise<void> {
-    const encodedBaseDir = path.basename(archivePath);
-
-    if (!encodedBaseDir) {
-        throw new Error("Failed to determine `encodedBaseDir`");
-    }
-
     const cacheStats = await fs.promises.stat(archivePath);
 
     core.info(
@@ -60,24 +54,8 @@ export async function restoreCacheArchive(archivePath: string): Promise<void> {
         ].join("\n")
     );
 
-    if (!encodedBaseDir)
-        throw new Error("Failed to determine `encodedBaseDir`");
-
-    const originalBaseDir = Buffer.from(encodedBaseDir, "base64").toString(
-        "utf-8"
-    );
-
-    if (!originalBaseDir) {
-        throw new Error("Failed to decode archive path from base64");
-    }
-
-    const parentDir = dirname(originalBaseDir);
-
-    await fs.promises.mkdir(parentDir, { recursive: true });
-
-    // Restoring the archive to the root project directory
-    // Tar will automatically extract everything to the same paths it was created from
-    const cmd = `bash -c "${TAR_COMMAND} -xf ${archivePath} -C ${parentDir}"`;
+    // Restoring the archive
+    const cmd = `bash -c "${TAR_COMMAND} -xf ${archivePath} -C /"`;
     const extractPromise = execAsync(cmd);
 
     try {

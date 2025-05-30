@@ -16,6 +16,8 @@ case "$path" in
   *) expanded_path="$path" ;;
 esac
 
+abs_path="$(realpath "$expanded_path")"
+
 if [ -z "$path" ]; then
   echo "Must supply path argument"
   exit 1

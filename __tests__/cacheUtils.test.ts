@@ -237,24 +237,6 @@ describe("restoreCacheArchive", () => {
             cacheUtils.restoreCacheArchive(archivePath)
         ).resolves.toBeUndefined();
     });
-
-    it("should throw if archivePath has no basename (empty encodedBaseDir)", async () => {
-        // archivePath is "" → basename is "" → throws at `!encodedBaseDir`
-        await expect(cacheUtils.restoreCacheArchive("")).rejects.toThrow(
-            "Failed to determine `encodedBaseDir`"
-        );
-    });
-
-    it("should throw if archivePath basename is valid base64 but decodes to empty string", async () => {
-        // Instead, simulate this safely:
-        const encodedEmpty = Buffer.from("", "utf-8").toString("base64"); // "" → ""
-        const badArchive = path.join(TEST_DIR, encodedEmpty || "_"); // fallback so it's not just dir
-        await fs.promises.writeFile(badArchive, "dummy");
-
-        await expect(
-            cacheUtils.restoreCacheArchive(badArchive)
-        ).rejects.toThrow("Failed to decode archive path from base64");
-    });
 });
 
 describe("tryRestoreFromKey", () => {

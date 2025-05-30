@@ -1,6 +1,6 @@
 import * as core from "@actions/core";
 import { ChildProcess, exec } from "child_process";
-import { basename, dirname } from "path";
+import * as path from "path";
 import { promisify } from "util";
 
 import { Inputs, Outputs, State, TAR_COMMAND } from "../constants";
@@ -79,6 +79,27 @@ export function getInputAsArray(
         .filter(x => x !== "");
 }
 
+export function parseCachePaths(paths: string[]): string[] {
+    if (!paths || paths.length === 0) {
+        return [];
+    }
+
+    return paths
+        .filter(line => line.length > 0 && !line.startsWith("#"))
+        .map(line => {
+            if (line.startsWith("~/")) {
+                return path.join(
+                    process.env.HOME || "/home/runner",
+                    line.substring(2)
+                );
+            }
+            if (!path.isAbsolute(line)) {
+                return path.resolve(line);
+            }
+            return line;
+        });
+}
+
 export function getInputAsInt(
     name: string,
     options?: core.InputOptions
@@ -103,10 +124,7 @@ export async function runTarCommand(
     destPath: string,
     childProcesses: ChildProcess[]
 ): Promise<void> {
-    const baseDir = dirname(srcPath);
-    const folderName = basename(srcPath);
-
-    const cmd = `bash -c "${TAR_COMMAND} -cf ${destPath} -C ${baseDir} ${folderName}"`;
+    const cmd = `bash -c "${TAR_COMMAND} -cf ${destPath} ${srcPath}"`;
 
     core.info(
         `Save cache for ${srcPath}: ${Buffer.from(srcPath).toString("base64")}`

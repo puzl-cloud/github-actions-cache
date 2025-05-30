@@ -267,9 +267,9 @@ describe("runTarCommand (integration)", () => {
         expect(stat.size).toBeGreaterThan(0);
 
         // Extract and verify contents
-        const parentDir = path.dirname(srcDir);
-        const useCFlag = parentDir.startsWith("/") ? `-C ${parentDir}` : "";
-        const cmd = `bash -c "${TAR_COMMAND} -xf ${destTar} ${useCFlag}"`;
+        const extractDir = path.join(tempDir, "extract");
+        await fs.promises.mkdir(extractDir);
+        const cmd = `bash -c "${TAR_COMMAND} -xf ${destTar} -C ${extractDir}"`;
         execSync(cmd, { stdio: "inherit" });
 
         const extractedFile = path.join(srcDir, "file.txt");

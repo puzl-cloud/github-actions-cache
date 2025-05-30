@@ -25499,7 +25499,13 @@ exports.getInputAsBool = getInputAsBool;
 function runTarCommand(srcPath, destPath, childProcesses) {
     return __awaiter(this, void 0, void 0, function* () {
         var _a;
+<<<<<<< HEAD
         const cmd = `bash -c "${constants_1.TAR_COMMAND} -cf ${destPath} ${srcPath}"`;
+=======
+        const baseDir = (0, path_1.dirname)(srcPath);
+        const folderName = (0, path_1.basename)(srcPath);
+        const cmd = `bash -c "${constants_1.TAR_COMMAND} -cf ${destPath} -C ${baseDir} ${folderName}"`;
+>>>>>>> main
         core.info(`Save cache for ${srcPath}: ${Buffer.from(srcPath).toString("base64")}`);
         const child = (0, child_process_1.exec)(cmd, { maxBuffer: 10 * 1024 * 1024 });
         let stderr = "";
@@ -25617,8 +25623,22 @@ function restoreCacheArchive(archivePath) {
             `Created: ${cacheStats.mtime}`,
             `Size: ${(0, pretty_bytes_1.default)(cacheStats.size || 0)}`
         ].join("\n"));
+<<<<<<< HEAD
         // Restoring the archive
         const cmd = `bash -c "${constants_1.TAR_COMMAND} -xf ${archivePath} -C /"`;
+=======
+        if (!encodedBaseDir)
+            throw new Error("Failed to determine `encodedBaseDir`");
+        const originalBaseDir = Buffer.from(encodedBaseDir, "base64").toString("utf-8");
+        if (!originalBaseDir) {
+            throw new Error("Failed to decode archive path from base64");
+        }
+        const parentDir = (0, path_1.dirname)(originalBaseDir);
+        yield fs_1.default.promises.mkdir(parentDir, { recursive: true });
+        // Restoring the archive to the root project directory
+        // Tar will automatically extract everything to the same paths it was created from
+        const cmd = `bash -c "${constants_1.TAR_COMMAND} -xf ${archivePath} -C ${parentDir}"`;
+>>>>>>> main
         const extractPromise = (0, actionUtils_1.execAsync)(cmd);
         try {
             yield (0, common_1.streamOutputUntilResolved)(extractPromise);

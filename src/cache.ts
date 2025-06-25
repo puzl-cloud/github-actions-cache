@@ -129,7 +129,11 @@ export async function saveCache(
     const childProcesses: ChildProcess[] = [];
 
     try {
-        for (let i = 0, j = 0; i < resolvedPaths.length; i += concurrencyLimit, j++) {
+        for (
+            let i = 0, j = 0;
+            i < resolvedPaths.length;
+            i += concurrencyLimit, j++
+        ) {
             const batch = resolvedPaths.slice(i, i + concurrencyLimit);
             core.info(
                 `Saving batch ${j + 1}; batch size: ${batch.length}; total paths: ${resolvedPaths.length}.`

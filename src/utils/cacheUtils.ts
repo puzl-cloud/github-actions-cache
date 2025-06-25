@@ -12,6 +12,9 @@ export async function locateCacheFiles(cacheDir: string): Promise<string[]> {
     try {
         await fs.promises.access(cacheDir);
     } catch {
+        core.warning(
+            `Cache directory "${cacheDir}" does not exist or is inaccessible.`
+        );
         return [];
     }
 

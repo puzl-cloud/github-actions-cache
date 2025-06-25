@@ -181,12 +181,61 @@ describe("Cache Integration", () => {
 
         // Verify warning was logged again for restore
         expect(warningSpy).toHaveBeenCalledWith(
-            expect.stringContaining(`No such file or directory`)
+            expect.stringContaining(`does not exist`)
         );
 
         // Should return undefined as no cache was found
         expect(restoreResult).toBeUndefined();
 
         warningSpy.mockRestore();
+    });
+
+    test("should support relative paths", async () => {
+        const relativePaths = ["file1.txt", "file2.txt", "subdir"];
+        process.chdir(TEST_DIR);
+
+        const saved = await cache.saveCache(relativePaths, CACHE_KEY);
+        expect(saved).toBeGreaterThan(0);
+
+        const restored = await cache.restoreCache(
+            CACHE_KEY,
+            [],
+            [TEST_CACHE_DIR]
+        );
+        expect(restored).toBe(CACHE_KEY);
+    });
+
+    test("should support absolute paths", async () => {
+        const absolutePaths = Object.keys(TEST_FILES).map(f =>
+            path.join(TEST_DIR, f)
+        );
+        process.chdir(TEST_DIR);
+
+        const saved = await cache.saveCache(absolutePaths, CACHE_KEY);
+        expect(saved).toBeGreaterThan(0);
+
+        const restored = await cache.restoreCache(
+            CACHE_KEY,
+            [],
+            [TEST_CACHE_DIR]
+        );
+        expect(restored).toBe(CACHE_KEY);
+    });
+
+    test("should support glob pattern '**/*.txt'", async () => {
+        process.chdir(TEST_DIR);
+        const globPaths = ["**/*.txt"];
+
+        jest.spyOn(actionUtils, "getInputAsArray").mockReturnValue(globPaths);
+
+        const saved = await cache.saveCache(globPaths, CACHE_KEY);
+        expect(saved).toBeGreaterThan(0);
+
+        const restored = await cache.restoreCache(
+            CACHE_KEY,
+            [],
+            [TEST_CACHE_DIR]
+        );
+        expect(restored).toBe(CACHE_KEY);
     });
 });

@@ -3,7 +3,7 @@ import { ChildProcess } from "child_process";
 import fs from "fs";
 import { join } from "path";
 
-import { CACHE_DIR } from "./constants";
+import { CACHE_DIR, InputSkipFailure } from "./constants";
 import { CopyOptions } from "./options";
 import { isCacheFunctionEnabled, runTarCommand } from "./utils/actionUtils";
 import { tryRestoreFromKey } from "./utils/cacheUtils";
@@ -124,7 +124,8 @@ export async function saveCache(
 
     await fs.promises.mkdir(keyCacheDir, { recursive: true });
 
-    const skipFailure = core.getInput("skip-failure")?.toLowerCase() === "true";
+    const skipFailure =
+        core.getInput(InputSkipFailure)?.toLowerCase() === "true";
 
     const childProcesses: ChildProcess[] = [];
 

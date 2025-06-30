@@ -28372,7 +28372,7 @@ function saveCache(paths_1, key_1) {
         const cacheDir = constants_1.CACHE_DIR.cache;
         const keyCacheDir = (0, path_1.join)(cacheDir, key);
         yield fs_1.default.promises.mkdir(keyCacheDir, { recursive: true });
-        const skipFailure = ((_a = core.getInput("skip-failure")) === null || _a === void 0 ? void 0 : _a.toLowerCase()) === "true";
+        const skipFailure = ((_a = core.getInput(constants_1.InputSkipFailure)) === null || _a === void 0 ? void 0 : _a.toLowerCase()) === "true";
         const childProcesses = [];
         try {
             for (let i = 0, j = 0; i < resolvedPaths.length; i += concurrencyLimit, j++) {
@@ -28416,7 +28416,7 @@ exports.saveCache = saveCache;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.TAR_COMMAND = exports.CACHE_DIR = exports.RefKey = exports.Events = exports.State = exports.Outputs = exports.Inputs = void 0;
+exports.TAR_COMMAND = exports.CACHE_DIR = exports.RefKey = exports.Events = exports.State = exports.Outputs = exports.InputSkipFailure = exports.Inputs = void 0;
 var Inputs;
 (function (Inputs) {
     Inputs["Key"] = "key";
@@ -28425,6 +28425,7 @@ var Inputs;
     Inputs["FailOnCacheMiss"] = "fail-on-cache-miss";
     Inputs["LookupOnly"] = "lookup-only"; // Input for cache, restore action
 })(Inputs || (exports.Inputs = Inputs = {}));
+exports.InputSkipFailure = "skip-failure";
 var Outputs;
 (function (Outputs) {
     Outputs["CacheHit"] = "cache-hit";
@@ -28803,7 +28804,7 @@ function restoreCacheArchive(archivePath) {
             yield (0, common_1.streamOutputUntilResolved)(extractPromise);
         }
         catch (err) {
-            const skipFailure = core.getInput("skip-failure") || false;
+            const skipFailure = core.getInput(constants_1.InputSkipFailure) || false;
             core.warning(`Tar command failed: ${err}`);
             if (!skipFailure) {
                 throw err;

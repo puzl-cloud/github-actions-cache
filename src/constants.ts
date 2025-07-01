@@ -6,6 +6,8 @@ export enum Inputs {
     LookupOnly = "lookup-only" // Input for cache, restore action
 }
 
+export const InputSkipFailure = "skip-failure";
+
 export enum Outputs {
     CacheHit = "cache-hit"
 }

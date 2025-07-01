@@ -3,10 +3,11 @@ import { ChildProcess } from "child_process";
 import fs from "fs";
 import { join } from "path";
 
-import { CACHE_DIR } from "./constants";
+import { CACHE_DIR, InputSkipFailure } from "./constants";
 import { CopyOptions } from "./options";
 import { isCacheFunctionEnabled, runTarCommand } from "./utils/actionUtils";
 import { tryRestoreFromKey } from "./utils/cacheUtils";
+import { resolvePaths } from "./utils/common";
 
 export class ReserveCacheError extends Error {
     constructor(message: string) {
@@ -112,7 +113,10 @@ export async function saveCache(
     }
 
     checkKey(key);
-    checkPaths(paths);
+
+    const resolvedPaths = await resolvePaths(paths);
+
+    checkPaths(resolvedPaths);
 
     const cacheDir: string | undefined = CACHE_DIR.cache;
 
@@ -120,15 +124,20 @@ export async function saveCache(
 
     await fs.promises.mkdir(keyCacheDir, { recursive: true });
 
-    const skipFailure = core.getInput("skip-failure")?.toLowerCase() === "true";
+    const skipFailure =
+        core.getInput(InputSkipFailure)?.toLowerCase() === "true";
 
     const childProcesses: ChildProcess[] = [];
 
     try {
-        for (let i = 0, j = 0; i < paths.length; i += concurrencyLimit, j++) {
-            const batch = paths.slice(i, i + concurrencyLimit);
+        for (
+            let i = 0, j = 0;
+            i < resolvedPaths.length;
+            i += concurrencyLimit, j++
+        ) {
+            const batch = resolvedPaths.slice(i, i + concurrencyLimit);
             core.info(
-                `Saving batch ${j + 1}; batch size: ${batch.length}; total paths: ${paths.length}.`
+                `Saving batch ${j + 1}; batch size: ${batch.length}; total paths: ${resolvedPaths.length}.`
             );
 
             await Promise.all(

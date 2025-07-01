@@ -3,7 +3,7 @@ import fs from "fs";
 import path from "path";
 import prettyBytes from "pretty-bytes";
 
-import { TAR_COMMAND } from "../constants";
+import { InputSkipFailure, TAR_COMMAND } from "../constants";
 import { CopyOptions } from "../options";
 import { execAsync } from "./actionUtils";
 import { streamOutputUntilResolved } from "./common";
@@ -12,6 +12,9 @@ export async function locateCacheFiles(cacheDir: string): Promise<string[]> {
     try {
         await fs.promises.access(cacheDir);
     } catch {
+        core.warning(
+            `Cache directory "${cacheDir}" does not exist or is inaccessible.`
+        );
         return [];
     }
 
@@ -61,7 +64,7 @@ export async function restoreCacheArchive(archivePath: string): Promise<void> {
     try {
         await streamOutputUntilResolved(extractPromise);
     } catch (err) {
-        const skipFailure = core.getInput("skip-failure") || false;
+        const skipFailure = core.getInput(InputSkipFailure) || false;
         core.warning(`Tar command failed: ${err}`);
         if (!skipFailure) {
             throw err;

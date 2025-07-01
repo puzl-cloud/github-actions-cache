@@ -6,6 +6,7 @@ import * as cacheModule from "../src/cache";
 import { CACHE_DIR } from "../src/constants";
 import * as actionUtils from "../src/utils/actionUtils";
 import * as cacheUtils from "../src/utils/cacheUtils";
+import * as commonUtils from "../src/utils/common";
 
 const MOCKED_PRIMARY_KEY = "mocked-primary-key";
 const MOCKED_RESTORED_KEY = MOCKED_PRIMARY_KEY;
@@ -27,6 +28,14 @@ const accessMock = fs.promises.access as jest.Mock;
 const readdirMock = fs.promises.readdir as jest.Mock;
 
 jest.mock("@actions/core");
+
+jest.mock("../src/utils/common", () => {
+    const actual = jest.requireActual("../src/utils/common");
+    return {
+        ...actual,
+        resolvePaths: jest.fn()
+    };
+});
 
 jest.mock("../src/utils/actionUtils", () => {
     const actual = jest.requireActual("../src/utils/actionUtils");
@@ -218,6 +227,10 @@ describe("saveCache", () => {
         (actionUtils.isCacheFunctionEnabled as jest.Mock).mockReturnValue(true);
         accessMock.mockResolvedValue(undefined);
         mkdirMock.mockResolvedValue(undefined);
+        (commonUtils.resolvePaths as jest.Mock).mockResolvedValue([
+            "file-a",
+            "file-b"
+        ]);
 
         const runTarMock = (
             actionUtils.runTarCommand as jest.Mock
@@ -251,6 +264,7 @@ describe("saveCache", () => {
         accessMock.mockResolvedValue(undefined);
         mkdirMock.mockResolvedValue(undefined);
         getInputMock.mockReturnValue("false");
+        (commonUtils.resolvePaths as jest.Mock).mockResolvedValue(["file-a"]);
 
         (actionUtils.runTarCommand as jest.Mock).mockImplementation(() => {
             throw new Error("tar failed");
@@ -273,6 +287,7 @@ describe("saveCache", () => {
         accessMock.mockResolvedValue(undefined);
         mkdirMock.mockResolvedValue(undefined);
         getInputMock.mockReturnValue("true");
+        (commonUtils.resolvePaths as jest.Mock).mockResolvedValue(["file-a"]);
 
         (actionUtils.runTarCommand as jest.Mock).mockImplementation(() => {
             throw new Error("expected failure");
@@ -291,6 +306,9 @@ describe("saveCache", () => {
         accessMock.mockResolvedValue(undefined);
         mkdirMock.mockResolvedValue(undefined);
         getInputMock.mockReturnValue(""); // skip-failure = false
+        (commonUtils.resolvePaths as jest.Mock).mockResolvedValue([
+            "./fail-path"
+        ]);
 
         // Mock runTarCommand to push a broken child process into the array and throw
         const mockChild = {

@@ -3,7 +3,7 @@ import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
 
-import { TAR_COMMAND } from "../src/constants";
+import { InputSkipFailure, TAR_COMMAND } from "../src/constants";
 import * as actionUtils from "../src/utils/actionUtils";
 import * as cacheUtils from "../src/utils/cacheUtils";
 import { streamOutputUntilResolved } from "../src/utils/common";
@@ -217,7 +217,7 @@ describe("restoreCacheArchive", () => {
         );
 
         (core.getInput as jest.Mock).mockImplementation(name =>
-            name === "skip-failure" ? "true" : ""
+            name === InputSkipFailure ? "true" : ""
         );
 
         await expect(

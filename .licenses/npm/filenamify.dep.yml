@@ -2,8 +2,8 @@
 name: filenamify
 version: 4.3.0
 type: npm
-summary: 
-homepage: 
+summary: Convert a string to a valid safe filename
+homepage:
 license: mit
 licenses:
 - sources: license

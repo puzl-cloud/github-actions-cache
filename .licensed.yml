@@ -14,3 +14,4 @@ allowed:
 reviewed:
   npm:
   - sax
+  - "@actions/http-client@2.2.1"

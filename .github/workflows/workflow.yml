@@ -108,7 +108,7 @@ jobs:
       - name: Save cache
         uses: ./save
         with:
-          key: test-${{ runner.os }}-${{ github.run_id }}
+          key: test-separate-${{ runner.os }}-${{ github.run_id }}
           path: |
             test-separate-actions
             ./test/**/dist
@@ -129,7 +129,7 @@ jobs:
       - name: Restore cache
         uses: ./restore
         with:
-          key: test-${{ runner.os }}-${{ github.run_id }}
+          key: test-separate-${{ runner.os }}-${{ github.run_id }}
           path: |
             test-separate-actions
             ./test/**/dist
@@ -142,7 +142,7 @@ jobs:
         run: bash __tests__/verify-cache-files.sh ${{ runner.os }} ./test/dir/dist
       - name: Verify cache files outside working directory
         shell: bash
-        run: bash __tests__/verify-cache-files.sh ${{ runner.os }} ~/ test-separate-actions
+        run: bash __tests__/verify-cache-files.sh ${{ runner.os }} ~/test-separate-actions
 
   test-cleanup-restore-only:
     needs: test-restore-only

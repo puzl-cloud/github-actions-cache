@@ -91,3 +91,47 @@ jobs:
       shell: bash
       run: bash -x cleanup.sh
 
+  test-save-only:
+    runs-on: [ puzl-cloud ]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Generate files
+        shell: bash
+        run: bash __tests__/create-cache-files.sh ${{ runner.os }} test-cache
+      - name: Save cache (save-only)
+        uses: ./save
+        with:
+          key: test-save-only-${{ runner.os }}-${{ github.run_id }}
+          path: test-cache
+      - name: tree /.puzl
+        shell: bash
+        run: tree /.puzl
+
+  test-restore-only:
+    needs: test-save-only
+    runs-on: [ puzl-cloud ]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: tree /.puzl
+        shell: bash
+        run: tree /.puzl
+      - name: Restore cache (restore-only)
+        uses: ./restore
+        with:
+          key: test-save-only-${{ runner.os }}-${{ github.run_id }}
+          path: test-cache
+      - name: Verify restored files
+        shell: bash
+        run: bash __tests__/verify-cache-files.sh ${{ runner.os }} test-cache
+
+  test-cleanup-restore-only:
+    needs: test-restore-only
+    runs-on: [ puzl-cloud ]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Cleanup old caches
+        shell: bash
+        run: bash -x cleanup.sh

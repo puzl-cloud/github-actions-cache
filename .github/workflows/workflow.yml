@@ -96,14 +96,23 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Generate files
+      - name: Generate files in working directory
         shell: bash
         run: bash __tests__/create-cache-files.sh ${{ runner.os }} test-separate-actions
-      - name: Save cache (save-only)
+      - name: Generate files outside working directory
+        shell: bash
+        run: bash __tests__/create-cache-files.sh ${{ runner.os }} ~/test-separate-actions
+      - name: Generate files outside working directory
+        shell: bash
+        run: bash __tests__/create-cache-files.sh ${{ runner.os }} ./test/dir/dist
+      - name: Save cache
         uses: ./save
         with:
-          key: test-save-only-${{ runner.os }}-${{ github.run_id }}
-          path: test-separate-actions
+          key: test-${{ runner.os }}-${{ github.run_id }}
+          path: |
+            test-separate-actions
+            ./test/**/dist
+            ~/test-separate-actions
       - name: tree /.puzl
         shell: bash
         run: tree /.puzl
@@ -117,14 +126,23 @@ jobs:
       - name: tree /.puzl
         shell: bash
         run: tree /.puzl
-      - name: Restore cache (restore-only)
+      - name: Restore cache
         uses: ./restore
         with:
-          key: test-save-only-${{ runner.os }}-${{ github.run_id }}
-          path: test-separate-actions
-      - name: Verify restored files
+          key: test-${{ runner.os }}-${{ github.run_id }}
+          path: |
+            test-separate-actions
+            ./test/**/dist
+            ~/test-separate-actions
+      - name: Verify cache files in working directory
         shell: bash
-        run: bash __tests__/verify-cache-files.sh ${{ runner.os }} test-separate-actions
+        run: bash __tests__/verify-cache-files.sh ${{ runner.os }}  test-separate-actions
+      - name: Verify cache files outside working directory
+        shell: bash
+        run: bash __tests__/verify-cache-files.sh ${{ runner.os }} ./test/dir/dist
+      - name: Verify cache files outside working directory
+        shell: bash
+        run: bash __tests__/verify-cache-files.sh ${{ runner.os }} ~/ test-separate-actions
 
   test-cleanup-restore-only:
     needs: test-restore-only

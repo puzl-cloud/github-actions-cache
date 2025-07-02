@@ -2,8 +2,8 @@ import * as core from "@actions/core";
 
 import * as cache from "./cache";
 import { CACHE_DIR, Inputs, State } from "./constants";
-import * as utils from "./utils/actionUtils";
 import { IStateProvider } from "./stateProvider";
+import * as utils from "./utils/actionUtils";
 
 async function run(stateProvider: IStateProvider): Promise<void> {
     if (!utils.isCacheFunctionEnabled()) {

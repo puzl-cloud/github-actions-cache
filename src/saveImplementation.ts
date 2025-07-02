@@ -2,8 +2,8 @@ import * as core from "@actions/core";
 
 import * as cache from "./cache";
 import { Inputs, State } from "./constants";
-import * as utils from "./utils/actionUtils";
 import { IStateProvider, StateProvider } from "./stateProvider";
+import * as utils from "./utils/actionUtils";
 
 // Catch and log any unhandled exceptions.  These exceptions can leak out of the uploadChunk method in
 // @actions/toolkit when a failed upload closes the file descriptor causing any in-process reads to

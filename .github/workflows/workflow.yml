@@ -98,12 +98,12 @@ jobs:
         uses: actions/checkout@v4
       - name: Generate files
         shell: bash
-        run: bash __tests__/create-cache-files.sh ${{ runner.os }} test-cache
+        run: bash __tests__/create-cache-files.sh ${{ runner.os }} test-separate-actions
       - name: Save cache (save-only)
         uses: ./save
         with:
           key: test-save-only-${{ runner.os }}-${{ github.run_id }}
-          path: test-cache
+          path: test-separate-actions
       - name: tree /.puzl
         shell: bash
         run: tree /.puzl
@@ -121,10 +121,10 @@ jobs:
         uses: ./restore
         with:
           key: test-save-only-${{ runner.os }}-${{ github.run_id }}
-          path: test-cache
+          path: test-separate-actions
       - name: Verify restored files
         shell: bash
-        run: bash __tests__/verify-cache-files.sh ${{ runner.os }} test-cache
+        run: bash __tests__/verify-cache-files.sh ${{ runner.os }} test-separate-actions
 
   test-cleanup-restore-only:
     needs: test-restore-only

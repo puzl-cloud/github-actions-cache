@@ -28571,8 +28571,8 @@ function setOutputAndState(key, cacheKey) {
     cacheKey && setCacheState(cacheKey);
 }
 exports.setOutputAndState = setOutputAndState;
-function getCacheState() {
-    const cacheKey = core.getState(constants_1.State.CacheMatchedKey);
+function getCacheState(stateProvider) {
+    const cacheKey = stateProvider.getCacheState();
     if (cacheKey) {
         core.debug(`Cache state/key: ${cacheKey}`);
         return cacheKey;

@@ -28341,9 +28341,12 @@ function run(stateProvider) {
             return;
         }
         try {
-            const state = utils.getCacheState();
-            // Inputs are re-evaluted before the post action, so we want the original key used for restore
-            const primaryKey = stateProvider.getState(constants_1.State.CachePrimaryKey);
+            const state = utils.getCacheState(stateProvider);
+            // Inputs are re-evaluated before the post action, so we want the original key used for restore
+            // If restore has stored a primary key in state, reuse that
+            // Else re-evaluate from inputs
+            const primaryKey = stateProvider.getState(constants_1.State.CachePrimaryKey) ||
+                core.getInput(constants_1.Inputs.Key);
             if (!primaryKey) {
                 utils.logWarning(`Error retrieving key from state.`);
                 return;
@@ -28579,8 +28582,8 @@ function setOutputAndState(key, cacheKey) {
     cacheKey && setCacheState(cacheKey);
 }
 exports.setOutputAndState = setOutputAndState;
-function getCacheState() {
-    const cacheKey = core.getState(constants_1.State.CacheMatchedKey);
+function getCacheState(stateProvider) {
+    const cacheKey = stateProvider.getCacheState();
     if (cacheKey) {
         core.debug(`Cache state/key: ${cacheKey}`);
         return cacheKey;

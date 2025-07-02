@@ -22,10 +22,14 @@ async function run(stateProvider: IStateProvider): Promise<number | void> {
     }
 
     try {
-        const state = utils.getCacheState();
+        const state = utils.getCacheState(stateProvider);
 
-        // Inputs are re-evaluted before the post action, so we want the original key used for restore
-        const primaryKey = stateProvider.getState(State.CachePrimaryKey);
+        // Inputs are re-evaluated before the post action, so we want the original key used for restore
+        // If restore has stored a primary key in state, reuse that
+        // Else re-evaluate from inputs
+        const primaryKey =
+            stateProvider.getState(State.CachePrimaryKey) ||
+            core.getInput(Inputs.Key);
 
         if (!primaryKey) {
             utils.logWarning(`Error retrieving key from state.`);

@@ -28259,6 +28259,8 @@ exports.InputSkipFailure = "skip-failure";
 var Outputs;
 (function (Outputs) {
     Outputs["CacheHit"] = "cache-hit";
+    Outputs["CachePrimaryKey"] = "cache-primary-key";
+    Outputs["CacheMatchedKey"] = "cache-matched-key"; // Output from restore action
 })(Outputs || (exports.Outputs = Outputs = {}));
 var State;
 (function (State) {
@@ -28284,7 +28286,7 @@ exports.TAR_COMMAND = "tar -I pigz";
 
 /***/ }),
 
-/***/ 5131:
+/***/ 7826:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -28322,23 +28324,29 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.saveRun = exports.saveOnlyRun = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const cache = __importStar(__nccwpck_require__(4810));
 const constants_1 = __nccwpck_require__(9042);
+const stateProvider_1 = __nccwpck_require__(1527);
 const utils = __importStar(__nccwpck_require__(6850));
 // Catch and log any unhandled exceptions.  These exceptions can leak out of the uploadChunk method in
 // @actions/toolkit when a failed upload closes the file descriptor causing any in-process reads to
 // throw an uncaught exception.  Instead of failing this action, just warn.
 process.on("uncaughtException", e => utils.logWarning(e.message));
-function run() {
+function run(stateProvider) {
     return __awaiter(this, void 0, void 0, function* () {
+        let cacheId = -1;
         if (!utils.isCacheFunctionEnabled()) {
             return;
         }
         try {
-            const state = utils.getCacheState();
-            // Inputs are re-evaluted before the post action, so we want the original key used for restore
-            const primaryKey = core.getState(constants_1.State.CachePrimaryKey);
+            const state = utils.getCacheState(stateProvider);
+            // Inputs are re-evaluated before the post action, so we want the original key used for restore
+            // If restore has stored a primary key in state, reuse that
+            // Else re-evaluate from inputs
+            const primaryKey = stateProvider.getState(constants_1.State.CachePrimaryKey) ||
+                core.getInput(constants_1.Inputs.Key);
             if (!primaryKey) {
                 utils.logWarning(`Error retrieving key from state.`);
                 return;
@@ -28351,7 +28359,7 @@ function run() {
                 required: true
             });
             const cachePaths = utils.parseCachePaths(rawPath);
-            const cacheId = yield cache.saveCache(cachePaths, primaryKey);
+            cacheId = yield cache.saveCache(cachePaths, primaryKey);
             if (cacheId != -1) {
                 core.info(`Cache saved with key: ${primaryKey}`);
             }
@@ -28359,10 +28367,131 @@ function run() {
         catch (error) {
             utils.logWarning(error.message);
         }
+        return cacheId;
     });
 }
-run();
-exports["default"] = run;
+function saveOnlyRun(earlyExit) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            const cacheId = yield run(new stateProvider_1.NullStateProvider());
+            if (cacheId === -1) {
+                core.warning(`Cache save failed.`);
+            }
+        }
+        catch (err) {
+            console.error(err);
+            if (earlyExit) {
+                process.exit(1);
+            }
+        }
+        // node will stay alive if any promises are not resolved,
+        // which is a possibility if HTTP requests are dangling
+        // due to retries or timeouts. We know that if we got here
+        // that all promises that we care about have successfully
+        // resolved, so simply exit with success.
+        if (earlyExit) {
+            process.exit(0);
+        }
+    });
+}
+exports.saveOnlyRun = saveOnlyRun;
+function saveRun(earlyExit) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            yield run(new stateProvider_1.StateProvider());
+        }
+        catch (err) {
+            console.error(err);
+            if (earlyExit) {
+                process.exit(1);
+            }
+        }
+        // node will stay alive if any promises are not resolved,
+        // which is a possibility if HTTP requests are dangling
+        // due to retries or timeouts. We know that if we got here
+        // that all promises that we care about have successfully
+        // resolved, so simply exit with success.
+        if (earlyExit) {
+            process.exit(0);
+        }
+    });
+}
+exports.saveRun = saveRun;
+
+
+/***/ }),
+
+/***/ 1527:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.NullStateProvider = exports.StateProvider = void 0;
+const core = __importStar(__nccwpck_require__(2186));
+const constants_1 = __nccwpck_require__(9042);
+class StateProviderBase {
+    constructor() {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-empty-function
+        this.setState = (key, value) => { };
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        this.getState = (key) => "";
+    }
+    getCacheState() {
+        const cacheKey = this.getState(constants_1.State.CacheMatchedKey);
+        if (cacheKey) {
+            core.debug(`Cache state/key: ${cacheKey}`);
+            return cacheKey;
+        }
+        return undefined;
+    }
+}
+class StateProvider extends StateProviderBase {
+    constructor() {
+        super(...arguments);
+        this.setState = core.saveState;
+        this.getState = core.getState;
+    }
+}
+exports.StateProvider = StateProvider;
+class NullStateProvider extends StateProviderBase {
+    constructor() {
+        super(...arguments);
+        this.stateToOutputMap = new Map([
+            [constants_1.State.CacheMatchedKey, constants_1.Outputs.CacheMatchedKey],
+            [constants_1.State.CachePrimaryKey, constants_1.Outputs.CachePrimaryKey]
+        ]);
+        this.setState = (key, value) => {
+            core.setOutput(this.stateToOutputMap.get(key), value);
+        };
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        this.getState = (key) => "";
+    }
+}
+exports.NullStateProvider = NullStateProvider;
 
 
 /***/ }),
@@ -28453,8 +28582,8 @@ function setOutputAndState(key, cacheKey) {
     cacheKey && setCacheState(cacheKey);
 }
 exports.setOutputAndState = setOutputAndState;
-function getCacheState() {
-    const cacheKey = core.getState(constants_1.State.CacheMatchedKey);
+function getCacheState(stateProvider) {
+    const cacheKey = stateProvider.getCacheState();
     if (cacheKey) {
         core.debug(`Cache state/key: ${cacheKey}`);
         return cacheKey;
@@ -30677,12 +30806,18 @@ module.exports = parseParams
 /******/ 	if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = __dirname + "/";
 /******/ 	
 /************************************************************************/
-/******/ 	
-/******/ 	// startup
-/******/ 	// Load entry module and return exports
-/******/ 	// This entry module is referenced by other modules so it can't be inlined
-/******/ 	var __webpack_exports__ = __nccwpck_require__(5131);
-/******/ 	module.exports = __webpack_exports__;
-/******/ 	
+var __webpack_exports__ = {};
+// This entry need to be wrapped in an IIFE because it need to be in strict mode.
+(() => {
+"use strict";
+var exports = __webpack_exports__;
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const saveImplementation_1 = __nccwpck_require__(7826);
+(0, saveImplementation_1.saveRun)(true);
+
+})();
+
+module.exports = __webpack_exports__;
 /******/ })()
 ;

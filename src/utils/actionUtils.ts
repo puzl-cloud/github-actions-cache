@@ -4,6 +4,7 @@ import * as path from "path";
 import { promisify } from "util";
 
 import { Inputs, Outputs, State, TAR_COMMAND } from "../constants";
+import { IStateProvider } from "../stateProvider";
 
 export function isCacheFunctionEnabled(): boolean {
     const enabled =
@@ -53,8 +54,10 @@ export function setOutputAndState(key: string, cacheKey?: string): void {
     cacheKey && setCacheState(cacheKey);
 }
 
-export function getCacheState(): string | undefined {
-    const cacheKey = core.getState(State.CacheMatchedKey);
+export function getCacheState(
+    stateProvider: IStateProvider
+): string | undefined {
+    const cacheKey = stateProvider.getCacheState();
     if (cacheKey) {
         core.debug(`Cache state/key: ${cacheKey}`);
         return cacheKey;

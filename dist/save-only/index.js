@@ -28286,34 +28286,7 @@ exports.TAR_COMMAND = "tar -I pigz";
 
 /***/ }),
 
-/***/ 4095:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-const restoreImplementation_1 = __importDefault(__nccwpck_require__(2023));
-const stateProvider_1 = __nccwpck_require__(1527);
-const restoreRun = () => __awaiter(void 0, void 0, void 0, function* () { return (0, restoreImplementation_1.default)(new stateProvider_1.StateProvider()); });
-restoreRun();
-exports["default"] = restoreRun;
-
-
-/***/ }),
-
-/***/ 2023:
+/***/ 7826:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -28351,61 +28324,99 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.saveRun = exports.saveOnlyRun = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const cache = __importStar(__nccwpck_require__(4810));
 const constants_1 = __nccwpck_require__(9042);
+const stateProvider_1 = __nccwpck_require__(1527);
 const utils = __importStar(__nccwpck_require__(6850));
+// Catch and log any unhandled exceptions.  These exceptions can leak out of the uploadChunk method in
+// @actions/toolkit when a failed upload closes the file descriptor causing any in-process reads to
+// throw an uncaught exception.  Instead of failing this action, just warn.
+process.on("uncaughtException", e => utils.logWarning(e.message));
 function run(stateProvider) {
     return __awaiter(this, void 0, void 0, function* () {
+        let cacheId = -1;
         if (!utils.isCacheFunctionEnabled()) {
             return;
         }
-        const lookupInDirs = [
-            constants_1.CACHE_DIR.cache,
-            constants_1.CACHE_DIR.masterBranchCache,
-            constants_1.CACHE_DIR.defaultBranchCache
-        ];
-        const primaryKey = utils.getPrimaryKey();
-        stateProvider.setState(constants_1.State.CachePrimaryKey, primaryKey);
-        const restoreKeys = utils.getInputAsArray(constants_1.Inputs.RestoreKeys);
-        const failOnCacheMiss = utils.getInputAsBool(constants_1.Inputs.FailOnCacheMiss);
-        const lookupOnly = utils.getInputAsBool(constants_1.Inputs.LookupOnly);
-        const cacheKey = yield cache.restoreCache(primaryKey, restoreKeys, lookupInDirs, {
-            lookupOnly: lookupOnly
-        });
-        if (!cacheKey) {
-            if (failOnCacheMiss) {
-                throw new Error(`Failed to restore cache entry. Exiting as fail-on-cache-miss is set. Input key: ${primaryKey}`);
+        try {
+            const state = utils.getCacheState(stateProvider);
+            // Inputs are re-evaluated before the post action, so we want the original key used for restore
+            // If restore has stored a primary key in state, reuse that
+            // Else re-evaluate from inputs
+            const primaryKey = stateProvider.getState(constants_1.State.CachePrimaryKey) ||
+                core.getInput(constants_1.Inputs.Key);
+            if (!primaryKey) {
+                utils.logWarning(`Error retrieving key from state.`);
+                return;
             }
-            core.info(`Cache not found for input keys: ${[
-                primaryKey,
-                ...restoreKeys
-            ].join(", ")}`);
-            return;
+            if (utils.isExactKeyMatch(primaryKey, state)) {
+                core.info(`Cache hit occurred on the primary key ${primaryKey}, not saving cache.`);
+                return;
+            }
+            const rawPath = utils.getInputAsArray(constants_1.Inputs.Path, {
+                required: true
+            });
+            const cachePaths = utils.parseCachePaths(rawPath);
+            cacheId = yield cache.saveCache(cachePaths, primaryKey);
+            if (cacheId != -1) {
+                core.info(`Cache saved with key: ${primaryKey}`);
+            }
         }
-        // Store the matched cache key
-        utils.setCacheState(cacheKey);
-        const isExactKeyMatch = utils.isExactKeyMatch(primaryKey, cacheKey);
-        utils.setCacheHitOutput(isExactKeyMatch);
-        if (lookupOnly) {
-            core.info(`Cache found and can be restored from key: ${cacheKey}`);
+        catch (error) {
+            utils.logWarning(error.message);
         }
-        else {
-            core.info(`Cache restored from key: ${cacheKey}`);
+        return cacheId;
+    });
+}
+function saveOnlyRun(earlyExit) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            const cacheId = yield run(new stateProvider_1.NullStateProvider());
+            if (cacheId === -1) {
+                core.warning(`Cache save failed.`);
+            }
+        }
+        catch (err) {
+            console.error(err);
+            if (earlyExit) {
+                process.exit(1);
+            }
+        }
+        // node will stay alive if any promises are not resolved,
+        // which is a possibility if HTTP requests are dangling
+        // due to retries or timeouts. We know that if we got here
+        // that all promises that we care about have successfully
+        // resolved, so simply exit with success.
+        if (earlyExit) {
+            process.exit(0);
         }
     });
 }
-// Wrap the run function to handle errors
-const wrappedRun = (stateProvider) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        yield run(stateProvider);
-    }
-    catch (error) {
-        core.setFailed(error.message);
-        throw error; // Re-throw the error for testing
-    }
-});
-exports["default"] = wrappedRun;
+exports.saveOnlyRun = saveOnlyRun;
+function saveRun(earlyExit) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            yield run(new stateProvider_1.StateProvider());
+        }
+        catch (err) {
+            console.error(err);
+            if (earlyExit) {
+                process.exit(1);
+            }
+        }
+        // node will stay alive if any promises are not resolved,
+        // which is a possibility if HTTP requests are dangling
+        // due to retries or timeouts. We know that if we got here
+        // that all promises that we care about have successfully
+        // resolved, so simply exit with success.
+        if (earlyExit) {
+            process.exit(0);
+        }
+    });
+}
+exports.saveRun = saveRun;
 
 
 /***/ }),
@@ -30795,12 +30806,18 @@ module.exports = parseParams
 /******/ 	if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = __dirname + "/";
 /******/ 	
 /************************************************************************/
-/******/ 	
-/******/ 	// startup
-/******/ 	// Load entry module and return exports
-/******/ 	// This entry module is referenced by other modules so it can't be inlined
-/******/ 	var __webpack_exports__ = __nccwpck_require__(4095);
-/******/ 	module.exports = __webpack_exports__;
-/******/ 	
+var __webpack_exports__ = {};
+// This entry need to be wrapped in an IIFE because it need to be in strict mode.
+(() => {
+"use strict";
+var exports = __webpack_exports__;
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const saveImplementation_1 = __nccwpck_require__(7826);
+(0, saveImplementation_1.saveOnlyRun)();
+
+})();
+
+module.exports = __webpack_exports__;
 /******/ })()
 ;

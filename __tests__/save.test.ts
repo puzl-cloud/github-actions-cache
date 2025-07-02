@@ -2,7 +2,7 @@ import * as core from "@actions/core";
 import path from "path";
 
 import * as cache from "../src/cache";
-import run from "../src/save";
+import { saveRun as run } from "../src/saveImplementation";
 import * as actionUtils from "../src/utils/actionUtils";
 
 const MOCK_PRIMARY_KEY = "default-key";

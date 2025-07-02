@@ -14,7 +14,7 @@ env:
 jobs:
   # Build and unit test
   static-tests:
-    runs-on: [puzl-cloud]
+    runs-on: puzl-ubuntu-latest
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -33,7 +33,7 @@ jobs:
 
   # End to end save and restore
   test-save:
-    runs-on: [puzl-cloud]
+    runs-on: puzl-ubuntu-latest
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -60,7 +60,7 @@ jobs:
 
   test-restore:
     needs: test-save
-    runs-on: [puzl-cloud]
+    runs-on: puzl-ubuntu-latest
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -71,6 +71,10 @@ jobs:
       uses: ./
       with:
         key: test-${{ runner.os }}-${{ github.run_id }}
+        path: |
+          test-cache
+          ./test/**/dist
+          ~/test-cache
     - name: Verify cache files in working directory
       shell: bash
       run: bash __tests__/verify-cache-files.sh ${{ runner.os }} test-cache
@@ -83,7 +87,7 @@ jobs:
 
   test-cleanup:
     needs: test-restore
-    runs-on: [puzl-cloud]
+    runs-on: puzl-ubuntu-latest
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -91,3 +95,65 @@ jobs:
       shell: bash
       run: bash -x cleanup.sh
 
+  test-save-only:
+    runs-on: puzl-ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Generate files in working directory
+        shell: bash
+        run: bash __tests__/create-cache-files.sh ${{ runner.os }} test-separate-actions
+      - name: Generate files outside working directory
+        shell: bash
+        run: bash __tests__/create-cache-files.sh ${{ runner.os }} ~/test-separate-actions
+      - name: Generate files outside working directory
+        shell: bash
+        run: bash __tests__/create-cache-files.sh ${{ runner.os }} ./test/dir/dist
+      - name: Save cache
+        uses: ./save
+        with:
+          key: test-separate-${{ runner.os }}-${{ github.run_id }}
+          path: |
+            test-separate-actions
+            ./test/**/dist
+            ~/test-separate-actions
+      - name: tree /.puzl
+        shell: bash
+        run: tree /.puzl
+
+  test-restore-only:
+    needs: test-save-only
+    runs-on: puzl-ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: tree /.puzl
+        shell: bash
+        run: tree /.puzl
+      - name: Restore cache
+        uses: ./restore
+        with:
+          key: test-separate-${{ runner.os }}-${{ github.run_id }}
+          path: |
+            test-separate-actions
+            ./test/**/dist
+            ~/test-separate-actions
+      - name: Verify cache files in working directory
+        shell: bash
+        run: bash __tests__/verify-cache-files.sh ${{ runner.os }}  test-separate-actions
+      - name: Verify cache files outside working directory
+        shell: bash
+        run: bash __tests__/verify-cache-files.sh ${{ runner.os }} ./test/dir/dist
+      - name: Verify cache files outside working directory
+        shell: bash
+        run: bash __tests__/verify-cache-files.sh ${{ runner.os }} ~/test-separate-actions
+
+  test-cleanup-restore-only:
+    needs: test-restore-only
+    runs-on: puzl-ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Cleanup old caches
+        shell: bash
+        run: bash -x cleanup.sh

@@ -5,6 +5,7 @@ import os from "os";
 import * as path from "path";
 
 import { Events, Outputs, RefKey, State, TAR_COMMAND } from "../src/constants";
+import { StateProvider } from "../src/stateProvider";
 import * as actionUtils from "../src/utils/actionUtils";
 import * as testUtils from "../src/utils/testUtils";
 
@@ -135,7 +136,7 @@ test("getCacheState with no state returns undefined", () => {
         return "";
     });
 
-    const state = actionUtils.getCacheState();
+    const state = actionUtils.getCacheState(new StateProvider());
 
     expect(state).toBe(undefined);
 
@@ -151,7 +152,7 @@ test("getCacheState with valid state", () => {
         return cacheKey;
     });
 
-    const state = actionUtils.getCacheState();
+    const state = actionUtils.getCacheState(new StateProvider());
 
     expect(state).toEqual(cacheKey);
 

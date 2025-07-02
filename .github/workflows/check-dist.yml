@@ -17,7 +17,7 @@ on:
 
 jobs:
   check-dist:
-    runs-on: puzl-cloud
+    runs-on: puzl-ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4

@@ -5,9 +5,9 @@ import os from "os";
 import * as path from "path";
 
 import { Events, Outputs, RefKey, State, TAR_COMMAND } from "../src/constants";
+import { StateProvider } from "../src/stateProvider";
 import * as actionUtils from "../src/utils/actionUtils";
 import * as testUtils from "../src/utils/testUtils";
-import { StateProvider } from "../src/stateProvider";
 
 jest.mock("@actions/core");
 jest.mock("@actions/cache");

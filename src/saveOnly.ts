@@ -1,5 +1,3 @@
 import save from "./saveImplementation";
 
-export default save;
-
 save();

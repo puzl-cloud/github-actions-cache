@@ -28286,34 +28286,7 @@ exports.TAR_COMMAND = "tar -I pigz";
 
 /***/ }),
 
-/***/ 4095:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-const restoreImplementation_1 = __importDefault(__nccwpck_require__(2023));
-const stateProvider_1 = __nccwpck_require__(1527);
-const restoreRun = () => __awaiter(void 0, void 0, void 0, function* () { return (0, restoreImplementation_1.default)(new stateProvider_1.StateProvider()); });
-restoreRun();
-exports["default"] = restoreRun;
-
-
-/***/ }),
-
-/***/ 2023:
+/***/ 7826:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -28355,57 +28328,68 @@ const core = __importStar(__nccwpck_require__(2186));
 const cache = __importStar(__nccwpck_require__(4810));
 const constants_1 = __nccwpck_require__(9042);
 const utils = __importStar(__nccwpck_require__(6850));
+const stateProvider_1 = __nccwpck_require__(1527);
+// Catch and log any unhandled exceptions.  These exceptions can leak out of the uploadChunk method in
+// @actions/toolkit when a failed upload closes the file descriptor causing any in-process reads to
+// throw an uncaught exception.  Instead of failing this action, just warn.
+process.on("uncaughtException", e => utils.logWarning(e.message));
 function run(stateProvider) {
     return __awaiter(this, void 0, void 0, function* () {
         if (!utils.isCacheFunctionEnabled()) {
             return;
         }
-        const lookupInDirs = [
-            constants_1.CACHE_DIR.cache,
-            constants_1.CACHE_DIR.masterBranchCache,
-            constants_1.CACHE_DIR.defaultBranchCache
-        ];
-        const primaryKey = utils.getPrimaryKey();
-        stateProvider.setState(constants_1.State.CachePrimaryKey, primaryKey);
-        const restoreKeys = utils.getInputAsArray(constants_1.Inputs.RestoreKeys);
-        const failOnCacheMiss = utils.getInputAsBool(constants_1.Inputs.FailOnCacheMiss);
-        const lookupOnly = utils.getInputAsBool(constants_1.Inputs.LookupOnly);
-        const cacheKey = yield cache.restoreCache(primaryKey, restoreKeys, lookupInDirs, {
-            lookupOnly: lookupOnly
-        });
-        if (!cacheKey) {
-            if (failOnCacheMiss) {
-                throw new Error(`Failed to restore cache entry. Exiting as fail-on-cache-miss is set. Input key: ${primaryKey}`);
+        try {
+            const state = utils.getCacheState();
+            // Inputs are re-evaluted before the post action, so we want the original key used for restore
+            const primaryKey = stateProvider.getState(constants_1.State.CachePrimaryKey);
+            if (!primaryKey) {
+                utils.logWarning(`Error retrieving key from state.`);
+                return;
             }
-            core.info(`Cache not found for input keys: ${[
-                primaryKey,
-                ...restoreKeys
-            ].join(", ")}`);
-            return;
+            if (utils.isExactKeyMatch(primaryKey, state)) {
+                core.info(`Cache hit occurred on the primary key ${primaryKey}, not saving cache.`);
+                return;
+            }
+            const rawPath = utils.getInputAsArray(constants_1.Inputs.Path, {
+                required: true
+            });
+            const cachePaths = utils.parseCachePaths(rawPath);
+            const cacheId = yield cache.saveCache(cachePaths, primaryKey);
+            if (cacheId != -1) {
+                core.info(`Cache saved with key: ${primaryKey}`);
+            }
         }
-        // Store the matched cache key
-        utils.setCacheState(cacheKey);
-        const isExactKeyMatch = utils.isExactKeyMatch(primaryKey, cacheKey);
-        utils.setCacheHitOutput(isExactKeyMatch);
-        if (lookupOnly) {
-            core.info(`Cache found and can be restored from key: ${cacheKey}`);
-        }
-        else {
-            core.info(`Cache restored from key: ${cacheKey}`);
+        catch (error) {
+            utils.logWarning(error.message);
         }
     });
 }
 // Wrap the run function to handle errors
-const wrappedRun = (stateProvider) => __awaiter(void 0, void 0, void 0, function* () {
+const wrappedRun = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        yield run(stateProvider);
+        yield run(new stateProvider_1.StateProvider());
     }
     catch (error) {
         core.setFailed(error.message);
-        throw error; // Re-throw the error for testing
+        throw error;
     }
 });
 exports["default"] = wrappedRun;
+
+
+/***/ }),
+
+/***/ 3160:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const saveImplementation_1 = __importDefault(__nccwpck_require__(7826));
+(0, saveImplementation_1.default)();
 
 
 /***/ }),
@@ -30799,7 +30783,7 @@ module.exports = parseParams
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
 /******/ 	// This entry module is referenced by other modules so it can't be inlined
-/******/ 	var __webpack_exports__ = __nccwpck_require__(4095);
+/******/ 	var __webpack_exports__ = __nccwpck_require__(3160);
 /******/ 	module.exports = __webpack_exports__;
 /******/ 	
 /******/ })()

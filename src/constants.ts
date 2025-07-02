@@ -9,7 +9,9 @@ export enum Inputs {
 export const InputSkipFailure = "skip-failure";
 
 export enum Outputs {
-    CacheHit = "cache-hit"
+    CacheHit = "cache-hit",
+    CachePrimaryKey = "cache-primary-key", // Output from restore action
+    CacheMatchedKey = "cache-matched-key" // Output from restore action
 }
 
 export enum State {

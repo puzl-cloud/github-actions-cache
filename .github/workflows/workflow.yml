@@ -14,7 +14,7 @@ env:
 jobs:
   # Build and unit test
   static-tests:
-    runs-on: [puzl-cloud]
+    runs-on: puzl-ubuntu-latest
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -33,7 +33,7 @@ jobs:
 
   # End to end save and restore
   test-save:
-    runs-on: [puzl-cloud]
+    runs-on: puzl-ubuntu-latest
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -60,7 +60,7 @@ jobs:
 
   test-restore:
     needs: test-save
-    runs-on: [puzl-cloud]
+    runs-on: puzl-ubuntu-latest
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -87,7 +87,7 @@ jobs:
 
   test-cleanup:
     needs: test-restore
-    runs-on: [puzl-cloud]
+    runs-on: puzl-ubuntu-latest
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -96,7 +96,7 @@ jobs:
       run: bash -x cleanup.sh
 
   test-save-only:
-    runs-on: [ puzl-cloud ]
+    runs-on: puzl-ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -123,7 +123,7 @@ jobs:
 
   test-restore-only:
     needs: test-save-only
-    runs-on: [ puzl-cloud ]
+    runs-on: puzl-ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -150,7 +150,7 @@ jobs:
 
   test-cleanup-restore-only:
     needs: test-restore-only
-    runs-on: [ puzl-cloud ]
+    runs-on: puzl-ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4

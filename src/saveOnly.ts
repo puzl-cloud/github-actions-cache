@@ -1,3 +1,3 @@
-import save from "./saveImplementation";
+import { saveOnlyRun } from "./saveImplementation";
 
-save();
+saveOnlyRun();

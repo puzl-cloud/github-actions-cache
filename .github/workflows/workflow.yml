@@ -71,6 +71,10 @@ jobs:
       uses: ./
       with:
         key: test-${{ runner.os }}-${{ github.run_id }}
+        path: |
+          test-cache
+          ./test/**/dist
+          ~/test-cache
     - name: Verify cache files in working directory
       shell: bash
       run: bash __tests__/verify-cache-files.sh ${{ runner.os }} test-cache

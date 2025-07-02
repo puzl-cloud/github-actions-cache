@@ -2,7 +2,11 @@ import * as core from "@actions/core";
 
 import * as cache from "./cache";
 import { Inputs, State } from "./constants";
-import { IStateProvider, StateProvider } from "./stateProvider";
+import {
+    IStateProvider,
+    NullStateProvider,
+    StateProvider
+} from "./stateProvider";
 import * as utils from "./utils/actionUtils";
 
 // Catch and log any unhandled exceptions.  These exceptions can leak out of the uploadChunk method in
@@ -10,7 +14,9 @@ import * as utils from "./utils/actionUtils";
 // throw an uncaught exception.  Instead of failing this action, just warn.
 process.on("uncaughtException", e => utils.logWarning(e.message));
 
-async function run(stateProvider: IStateProvider): Promise<void> {
+async function run(stateProvider: IStateProvider): Promise<number | void> {
+    let cacheId = -1;
+
     if (!utils.isCacheFunctionEnabled()) {
         return;
     }
@@ -38,7 +44,7 @@ async function run(stateProvider: IStateProvider): Promise<void> {
         });
         const cachePaths = utils.parseCachePaths(rawPath);
 
-        const cacheId = await cache.saveCache(cachePaths, primaryKey);
+        cacheId = await cache.saveCache(cachePaths, primaryKey);
 
         if (cacheId != -1) {
             core.info(`Cache saved with key: ${primaryKey}`);
@@ -46,16 +52,51 @@ async function run(stateProvider: IStateProvider): Promise<void> {
     } catch (error: unknown) {
         utils.logWarning((error as Error).message);
     }
+
+    return cacheId;
 }
 
-// Wrap the run function to handle errors
-const wrappedRun = async () => {
+export async function saveOnlyRun(
+    earlyExit?: boolean | undefined
+): Promise<void> {
+    try {
+        const cacheId = await run(new NullStateProvider());
+        if (cacheId === -1) {
+            core.warning(`Cache save failed.`);
+        }
+    } catch (err) {
+        console.error(err);
+        if (earlyExit) {
+            process.exit(1);
+        }
+    }
+
+    // node will stay alive if any promises are not resolved,
+    // which is a possibility if HTTP requests are dangling
+    // due to retries or timeouts. We know that if we got here
+    // that all promises that we care about have successfully
+    // resolved, so simply exit with success.
+    if (earlyExit) {
+        process.exit(0);
+    }
+}
+
+export async function saveRun(earlyExit?: boolean | undefined): Promise<void> {
     try {
         await run(new StateProvider());
-    } catch (error: unknown) {
-        core.setFailed((error as Error).message);
-        throw error;
+    } catch (err) {
+        console.error(err);
+        if (earlyExit) {
+            process.exit(1);
+        }
     }
-};
 
-export default wrappedRun;
+    // node will stay alive if any promises are not resolved,
+    // which is a possibility if HTTP requests are dangling
+    // due to retries or timeouts. We know that if we got here
+    // that all promises that we care about have successfully
+    // resolved, so simply exit with success.
+    if (earlyExit) {
+        process.exit(0);
+    }
+}

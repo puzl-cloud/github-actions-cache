@@ -1,5 +1,3 @@
-import save from "./saveImplementation";
+import { saveRun } from "./saveImplementation";
 
-export default save;
-
-save();
+saveRun(true);

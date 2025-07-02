@@ -28324,6 +28324,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.saveRun = exports.saveOnlyRun = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const cache = __importStar(__nccwpck_require__(4810));
 const constants_1 = __nccwpck_require__(9042);
@@ -28335,6 +28336,7 @@ const utils = __importStar(__nccwpck_require__(6850));
 process.on("uncaughtException", e => utils.logWarning(e.message));
 function run(stateProvider) {
     return __awaiter(this, void 0, void 0, function* () {
+        let cacheId = -1;
         if (!utils.isCacheFunctionEnabled()) {
             return;
         }
@@ -28354,7 +28356,7 @@ function run(stateProvider) {
                 required: true
             });
             const cachePaths = utils.parseCachePaths(rawPath);
-            const cacheId = yield cache.saveCache(cachePaths, primaryKey);
+            cacheId = yield cache.saveCache(cachePaths, primaryKey);
             if (cacheId != -1) {
                 core.info(`Cache saved with key: ${primaryKey}`);
             }
@@ -28362,34 +28364,56 @@ function run(stateProvider) {
         catch (error) {
             utils.logWarning(error.message);
         }
+        return cacheId;
     });
 }
-// Wrap the run function to handle errors
-const wrappedRun = () => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        yield run(new stateProvider_1.StateProvider());
-    }
-    catch (error) {
-        core.setFailed(error.message);
-        throw error;
-    }
-});
-exports["default"] = wrappedRun;
-
-
-/***/ }),
-
-/***/ 3160:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-const saveImplementation_1 = __importDefault(__nccwpck_require__(7826));
-(0, saveImplementation_1.default)();
+function saveOnlyRun(earlyExit) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            const cacheId = yield run(new stateProvider_1.NullStateProvider());
+            if (cacheId === -1) {
+                core.warning(`Cache save failed.`);
+            }
+        }
+        catch (err) {
+            console.error(err);
+            if (earlyExit) {
+                process.exit(1);
+            }
+        }
+        // node will stay alive if any promises are not resolved,
+        // which is a possibility if HTTP requests are dangling
+        // due to retries or timeouts. We know that if we got here
+        // that all promises that we care about have successfully
+        // resolved, so simply exit with success.
+        if (earlyExit) {
+            process.exit(0);
+        }
+    });
+}
+exports.saveOnlyRun = saveOnlyRun;
+function saveRun(earlyExit) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            yield run(new stateProvider_1.StateProvider());
+        }
+        catch (err) {
+            console.error(err);
+            if (earlyExit) {
+                process.exit(1);
+            }
+        }
+        // node will stay alive if any promises are not resolved,
+        // which is a possibility if HTTP requests are dangling
+        // due to retries or timeouts. We know that if we got here
+        // that all promises that we care about have successfully
+        // resolved, so simply exit with success.
+        if (earlyExit) {
+            process.exit(0);
+        }
+    });
+}
+exports.saveRun = saveRun;
 
 
 /***/ }),
@@ -30779,12 +30803,18 @@ module.exports = parseParams
 /******/ 	if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = __dirname + "/";
 /******/ 	
 /************************************************************************/
-/******/ 	
-/******/ 	// startup
-/******/ 	// Load entry module and return exports
-/******/ 	// This entry module is referenced by other modules so it can't be inlined
-/******/ 	var __webpack_exports__ = __nccwpck_require__(3160);
-/******/ 	module.exports = __webpack_exports__;
-/******/ 	
+var __webpack_exports__ = {};
+// This entry need to be wrapped in an IIFE because it need to be in strict mode.
+(() => {
+"use strict";
+var exports = __webpack_exports__;
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const saveImplementation_1 = __nccwpck_require__(7826);
+(0, saveImplementation_1.saveOnlyRun)();
+
+})();
+
+module.exports = __webpack_exports__;
 /******/ })()
 ;

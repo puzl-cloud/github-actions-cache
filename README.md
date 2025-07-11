@@ -32,6 +32,8 @@ See [Matching a cache key](https://help.github.com/en/actions/configuring-and-ma
 
 ### Example workflow
 
+#### Restoring and saving cache using a single action:
+
 ```yaml
 name: Caching Primes
 
@@ -42,24 +44,61 @@ jobs:
     runs-on: puzl-ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-    - name: Cache Primes
-      id: cache-primes
-      uses: puzl-cloud/github-actions-cache@v3
-      with:
-        path: prime-numbers
-        key: ${{ runner.os }}-primes
+      - name: Cache Primes
+        id: cache-primes
+        uses: puzl-cloud/github-actions-cache@v4
+        with:
+          path: prime-numbers
+          key: ${{ runner.os }}-primes
 
-    - name: Generate Prime Numbers
-      if: steps.cache-primes.outputs.cache-hit != 'true'
-      run: /generate-primes.sh -d prime-numbers
+      - name: Generate Prime Numbers
+        if: steps.cache-primes.outputs.cache-hit != 'true'
+        run: /generate-primes.sh -d prime-numbers
 
-    - name: Use Prime Numbers
-      run: /primes.sh -d prime-numbers
+      - name: Use Prime Numbers
+        run: /primes.sh -d prime-numbers
 ```
 
-> Note: You must use the `cache` action in your workflow before you need to use the files that might be restored from the cache. If the provided `key` matches an existing cache, a new cache is not created and if the provided `key` doesn't match an existing cache, a new cache is automatically created provided the job completes successfully.
+#### Using a combination of restore and save actions
+
+```yaml
+name: Caching Primes
+
+on: push
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Restore cached Primes
+        id: cache-primes-restore
+        uses: puzl-cloud/github-actions-cache/restore@v4
+        with:
+          path: |
+            path/to/dependencies
+            some/other/dependencies
+          key: ${{ runner.os }}-primes
+    .
+    . //intermediate workflow steps
+    .
+    - name: Save Primes
+      id: cache-primes-save
+      uses: puzl-cloud/github-actions-cache/save@v4
+      with:
+        path: |
+          path/to/dependencies
+          some/other/dependencies
+        key: ${{ steps.cache-primes-restore.outputs.cache-primary-key }}
+```
+
+> Note You must use the cache or restore action in your workflow before you need to use the files that might be restored
+> from the cache. If the provided key matches an existing cache, a new cache is not created and if the provided key
+> doesn't match an existing cache, a new cache is automatically created provided the job completes successfully.
 
 ## Creating a cache key
 
@@ -68,7 +107,7 @@ A cache key can include any of the contexts, functions, literals, and operators 
 For example, using the [`hashFiles`](https://docs.github.com/en/actions/learn-github-actions/expressions#hashfiles) function allows you to create a new cache when dependencies change.
 
 ```yaml
-  - uses: puzl-cloud/github-actions-cache@v3
+  - uses: puzl-cloud/github-actions-cache@v4
     with:
       path: |
         path/to/dependencies
@@ -101,9 +140,9 @@ Using the `cache-hit` output, subsequent steps (such as install or build) can be
 Example:
 ```yaml
 steps:
-  - uses: actions/checkout@v3
+  - uses: actions/checkout@v4
 
-  - uses: puzl-cloud/github-actions-cache@v3
+  - uses: puzl-cloud/github-actions-cache@v4
     id: cache
     with:
       path: path/to/dependencies

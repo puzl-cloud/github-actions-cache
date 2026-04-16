@@ -44,11 +44,11 @@ jobs:
     runs-on: puzl-ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Cache Primes
         id: cache-primes
-        uses: puzl-cloud/github-actions-cache@v4
+        uses: puzl-cloud/github-actions-cache@v5
         with:
           path: prime-numbers
           key: ${{ runner.os }}-primes
@@ -73,11 +73,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Restore cached Primes
         id: cache-primes-restore
-        uses: puzl-cloud/github-actions-cache/restore@v4
+        uses: puzl-cloud/github-actions-cache/restore@v5
         with:
           path: |
             path/to/dependencies
@@ -88,7 +88,7 @@ jobs:
     .
     - name: Save Primes
       id: cache-primes-save
-      uses: puzl-cloud/github-actions-cache/save@v4
+      uses: puzl-cloud/github-actions-cache/save@v5
       with:
         path: |
           path/to/dependencies
@@ -107,7 +107,7 @@ A cache key can include any of the contexts, functions, literals, and operators 
 For example, using the [`hashFiles`](https://docs.github.com/en/actions/learn-github-actions/expressions#hashfiles) function allows you to create a new cache when dependencies change.
 
 ```yaml
-  - uses: puzl-cloud/github-actions-cache@v4
+  - uses: puzl-cloud/github-actions-cache@v5
     with:
       path: |
         path/to/dependencies
@@ -125,7 +125,7 @@ Additionally, you can use arbitrary command output in a cache key, such as a dat
       echo "::set-output name=date::$(/bin/date -u "+%Y%m%d")"
     shell: bash
 
-  - uses: puzl-cloud/github-actions-cache@v3
+  - uses: puzl-cloud/github-actions-cache@v5
     with:
       path: path/to/dependencies
       key: ${{ runner.os }}-${{ steps.get-date.outputs.date }}-${{ hashFiles('**/lockfiles') }}
@@ -140,9 +140,9 @@ Using the `cache-hit` output, subsequent steps (such as install or build) can be
 Example:
 ```yaml
 steps:
-  - uses: actions/checkout@v4
+  - uses: actions/checkout@v6
 
-  - uses: puzl-cloud/github-actions-cache@v4
+  - uses: puzl-cloud/github-actions-cache@v5
     id: cache
     with:
       path: path/to/dependencies

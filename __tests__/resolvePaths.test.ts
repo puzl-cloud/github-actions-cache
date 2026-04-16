@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 
-import { resolvePaths } from "../src/utils/common";
+import { resolvePaths } from "../src/utils/common.js";
 
 const TEST_DIR = path.join(__dirname, "glob-test");
 

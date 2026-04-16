@@ -1,3 +1,3 @@
-import { saveRun } from "./saveImplementation";
+import { saveRun } from "./saveImplementation.js";
 
 saveRun(true);

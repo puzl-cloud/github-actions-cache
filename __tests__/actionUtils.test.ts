@@ -4,13 +4,18 @@ import * as fs from "fs";
 import os from "os";
 import * as path from "path";
 
-import { Events, Outputs, RefKey, State, TAR_COMMAND } from "../src/constants";
-import { StateProvider } from "../src/stateProvider";
-import * as actionUtils from "../src/utils/actionUtils";
-import * as testUtils from "../src/utils/testUtils";
+import {
+    Events,
+    Outputs,
+    RefKey,
+    State,
+    TAR_COMMAND
+} from "../src/constants.js";
+import { StateProvider } from "../src/stateProvider.js";
+import * as actionUtils from "../src/utils/actionUtils.js";
+import * as testUtils from "../src/utils/testUtils.js";
 
 jest.mock("@actions/core");
-jest.mock("@actions/cache");
 
 beforeAll(() => {
     jest.spyOn(core, "getInput").mockImplementation((name, options) => {

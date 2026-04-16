@@ -2,11 +2,11 @@ import * as core from "@actions/core";
 import { ChildProcess } from "child_process";
 import fs from "fs";
 
-import * as cacheModule from "../src/cache";
-import { CACHE_DIR } from "../src/constants";
-import * as actionUtils from "../src/utils/actionUtils";
-import * as cacheUtils from "../src/utils/cacheUtils";
-import * as commonUtils from "../src/utils/common";
+import * as cacheModule from "../src/cache.js";
+import { CACHE_DIR } from "../src/constants.js";
+import * as actionUtils from "../src/utils/actionUtils.js";
+import * as cacheUtils from "../src/utils/cacheUtils.js";
+import * as commonUtils from "../src/utils/common.js";
 
 const MOCKED_PRIMARY_KEY = "mocked-primary-key";
 const MOCKED_RESTORED_KEY = MOCKED_PRIMARY_KEY;

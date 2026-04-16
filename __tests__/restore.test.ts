@@ -1,4 +1,4 @@
-import type { restoreCache as restoreCacheFn } from "../src/cache";
+import type { restoreCache as restoreCacheFn } from "../src/cache.js";
 
 const DEFAULT_PRIMARY_KEY = "default-key";
 const DEFAULT_RESTORE_KEYS: string[] = [];
@@ -46,8 +46,8 @@ async function runWithMocks(overrides: Record<string, string> = {}) {
 
     await jest.isolateModulesAsync(async () => {
         const core = await import("@actions/core");
-        const cacheModule = await import("../src/cache");
-        const actionUtils = await import("../src/utils/actionUtils");
+        const cacheModule = await import("../src/cache.js");
+        const actionUtils = await import("../src/utils/actionUtils.js");
 
         jest.spyOn(actionUtils, "isCacheFunctionEnabled").mockReturnValue(true);
         jest.spyOn(actionUtils, "getPrimaryKey").mockReturnValue(
@@ -62,7 +62,7 @@ async function runWithMocks(overrides: Record<string, string> = {}) {
             actionUtils
         };
 
-        run = (await import("../src/restore")).default;
+        run = (await import("../src/restore.js")).default;
     });
 
     return { run, mocks };

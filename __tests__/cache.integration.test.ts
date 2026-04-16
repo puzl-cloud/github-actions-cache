@@ -4,8 +4,8 @@ import * as os from "os";
 import * as path from "path";
 
 // Import after mocking
-import * as cache from "../src/cache";
-import * as actionUtils from "../src/utils/actionUtils";
+import * as cache from "../src/cache.js";
+import * as actionUtils from "../src/utils/actionUtils.js";
 
 // Mock CACHE_DIR to use our test directory
 jest.mock("../src/constants", () => {

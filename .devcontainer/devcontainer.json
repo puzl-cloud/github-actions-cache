@@ -6,13 +6,18 @@
 	"image": "mcr.microsoft.com/devcontainers/typescript-node:4-24-bookworm",
 
 	// Features to add to the dev container. More info: https://containers.dev/features.
-	// "features": {},
+	"features": {
+		"ghcr.io/devcontainers/features/ruby:1": {
+			"version": "3.3"
+		},
+		"ghcr.io/devcontainers-extra/features/cmake:1": {}
+	},
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
 	// "forwardPorts": [],
 
 	// Use 'postCreateCommand' to run commands after the container is created.
-	"postCreateCommand": "sudo chown -R node:node . && sudo apt-get update && sudo apt-get install -y pigz && npm install"
+	"postCreateCommand": "sudo chown -R node:node . && sudo apt-get update && sudo apt-get install -y pigz && gem install licensed:2.12.2 --no-document && npm install"
 
 	// Configure tool-specific properties.
 	// "customizations": {},

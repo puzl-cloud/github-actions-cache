@@ -1,5 +1,5 @@
-import restore from "./restoreImplementation";
-import { StateProvider } from "./stateProvider";
+import restore from "./restoreImplementation.js";
+import { StateProvider } from "./stateProvider.js";
 
 const restoreRun = async (): Promise<void> => restore(new StateProvider());
 

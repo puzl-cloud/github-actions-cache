@@ -1,9 +1,9 @@
 import * as core from "@actions/core";
 import path from "path";
 
-import * as cache from "../src/cache";
-import { saveRun as run } from "../src/saveImplementation";
-import * as actionUtils from "../src/utils/actionUtils";
+import * as cache from "../src/cache.js";
+import { saveRun as run } from "../src/saveImplementation.js";
+import * as actionUtils from "../src/utils/actionUtils.js";
 
 const MOCK_PRIMARY_KEY = "default-key";
 const MOCK_SAVED_KEY = "saved-key";

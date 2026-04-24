@@ -3,11 +3,11 @@ import { ChildProcess } from "child_process";
 import fs from "fs";
 import { join } from "path";
 
-import { CACHE_DIR, InputSkipFailure } from "./constants";
-import { CopyOptions } from "./options";
-import { isCacheFunctionEnabled, runTarCommand } from "./utils/actionUtils";
-import { tryRestoreFromKey } from "./utils/cacheUtils";
-import { resolvePaths } from "./utils/common";
+import { CACHE_DIR, InputSkipFailure } from "./constants.js";
+import { CopyOptions } from "./options.js";
+import { isCacheFunctionEnabled, runTarCommand } from "./utils/actionUtils.js";
+import { tryRestoreFromKey } from "./utils/cacheUtils.js";
+import { resolvePaths } from "./utils/common.js";
 
 export class ReserveCacheError extends Error {
     constructor(message: string) {

@@ -1,4 +1,4 @@
-import restore from "./restoreImplementation";
-import { NullStateProvider } from "./stateProvider";
+import restore from "./restoreImplementation.js";
+import { NullStateProvider } from "./stateProvider.js";
 
 restore(new NullStateProvider());

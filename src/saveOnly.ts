@@ -1,3 +1,3 @@
-import { saveOnlyRun } from "./saveImplementation";
+import { saveOnlyRun } from "./saveImplementation.js";
 
 saveOnlyRun();

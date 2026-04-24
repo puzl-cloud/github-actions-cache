@@ -1,4 +1,4 @@
-import { Inputs } from "../constants";
+import { Inputs } from "../constants.js";
 
 // See: https://github.com/actions/toolkit/blob/master/packages/core/src/core.ts#L67
 function getInputName(name: string): string {

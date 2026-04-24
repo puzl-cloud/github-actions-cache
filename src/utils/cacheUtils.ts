@@ -3,10 +3,10 @@ import fs from "fs";
 import path from "path";
 import prettyBytes from "pretty-bytes";
 
-import { InputSkipFailure, TAR_COMMAND } from "../constants";
-import { CopyOptions } from "../options";
-import { execAsync } from "./actionUtils";
-import { streamOutputUntilResolved } from "./common";
+import { InputSkipFailure, TAR_COMMAND } from "../constants.js";
+import { CopyOptions } from "../options.js";
+import { execAsync } from "./actionUtils.js";
+import { streamOutputUntilResolved } from "./common.js";
 
 export async function locateCacheFiles(cacheDir: string): Promise<string[]> {
     try {

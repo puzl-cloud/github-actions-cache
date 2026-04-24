@@ -1,6 +1,6 @@
 import * as core from "@actions/core";
 
-import { Outputs, State } from "./constants";
+import { Outputs, State } from "./constants.js";
 
 export interface IStateProvider {
     setState(key: string, value: string): void;

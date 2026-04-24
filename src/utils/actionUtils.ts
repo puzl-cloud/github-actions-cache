@@ -3,8 +3,8 @@ import { ChildProcess, exec } from "child_process";
 import * as path from "path";
 import { promisify } from "util";
 
-import { Inputs, Outputs, State, TAR_COMMAND } from "../constants";
-import { IStateProvider } from "../stateProvider";
+import { Inputs, Outputs, State, TAR_COMMAND } from "../constants.js";
+import { IStateProvider } from "../stateProvider.js";
 
 export function isCacheFunctionEnabled(): boolean {
     const enabled =

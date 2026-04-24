@@ -7,7 +7,23 @@ module.exports = {
     testMatch: ["**/*.test.ts"],
     testRunner: "jest-circus/runner",
     transform: {
-        "^.+\\.ts$": "ts-jest"
+        "^.+\\.ts$": ["ts-jest", { tsconfig: "tsconfig.test.json" }],
+        "^.+\\.js$": [
+            "babel-jest",
+            {
+                plugins: [
+                    "@babel/plugin-transform-modules-commonjs",
+                    "@babel/plugin-transform-export-namespace-from"
+                ]
+            }
+        ]
+    },
+    transformIgnorePatterns: [
+        "[/\\\\]node_modules[/\\\\](?!@actions[/\\\\])"
+    ],
+    resolver: "./jest-resolver.cjs",
+    moduleNameMapper: {
+        "^(\\.{1,2}/.*)\\.js$": "$1"
     },
     verbose: true
 };

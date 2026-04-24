@@ -3,7 +3,7 @@ import { PassThrough } from "node:stream";
 import * as core from "@actions/core";
 import { ChildProcess, PromiseWithChild } from "child_process";
 
-import { streamOutputUntilResolved } from "../src/utils/common";
+import { streamOutputUntilResolved } from "../src/utils/common.js";
 
 describe("streamOutputUntilResolved", () => {
     test("should log info from stdout", async () => {

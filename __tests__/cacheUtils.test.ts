@@ -3,10 +3,10 @@ import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
 
-import { InputSkipFailure, TAR_COMMAND } from "../src/constants";
-import * as actionUtils from "../src/utils/actionUtils";
-import * as cacheUtils from "../src/utils/cacheUtils";
-import { streamOutputUntilResolved } from "../src/utils/common";
+import { InputSkipFailure, TAR_COMMAND } from "../src/constants.js";
+import * as actionUtils from "../src/utils/actionUtils.js";
+import * as cacheUtils from "../src/utils/cacheUtils.js";
+import { streamOutputUntilResolved } from "../src/utils/common.js";
 
 // Mock @actions/core
 jest.mock("@actions/core", () => ({
